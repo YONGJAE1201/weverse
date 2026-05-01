@@ -2391,7 +2391,7 @@ function renderContractTable() {
       card += '<span style="background:' + cgUrgent + ';color:#fff;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">D-' + cgDl + '</span>';
       card += '<button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;" onclick="event.stopPropagation();editContractGroup(this.dataset.aid,this.dataset.ids)" data-aid="' + advIdS + '" data-ids="' + allCgIds + '">계약수정</button>';
       card += '<button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;color:var(--accent);" onclick="event.stopPropagation();openExtendModal(this.dataset.ids.split(','))" data-ids="' + allCgIds + '">연장</button>';
-      card += '<button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;color:var(--red)" data-cids="' + allCgIds + '" onclick="event.stopPropagation();terminateContractGroup(this.getAttribute(&quot;data-cids&quot;))">' + '종료</button>';
+      card += '<button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;color:var(--red)" data-cids="' + allCgIds + '" data-action="terminate">' + '종료</button>';
       card += '</div>';
       card += '<span style="color:var(--text3);font-size:12px;margin-left:4px;" class="ct-chevron">▾</span>';
       card += '</div>';
@@ -2462,6 +2462,13 @@ function renderContractTable() {
     card += '</div></div>';
     return card;
   }).join('');
+  // 종료 버튼 이벤트 직접 등록
+  document.querySelectorAll('[data-action="terminate"]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      terminateContractGroup(this.getAttribute('data-cids'));
+    });
+  });
 }
 
 // 계약건 그룹 수정 모달 열기
