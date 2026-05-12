@@ -5096,11 +5096,6 @@ async function saveAllToFirebase() {
 
 function logout(){if(confirm('로그아웃 하시겠습니까?')){sessionStorage.removeItem('_wv_auth');window.location.replace('./index.html');}}
 
-</script>
-
-<div id="mobile-tabbar"><button onclick="showPage('dashboard')" class="active" id="mtab-dashboard"><span class="tab-icon">📊</span><span class="tab-label">대시보드</span></button><button onclick="showPage('map')" id="mtab-map"><span class="tab-icon">🗺️</span><span class="tab-label">노선지도</span></button><button onclick="showPage('contracts')" id="mtab-contracts"><span class="tab-icon">📋</span><span class="tab-label">계약관리</span></button><button onclick="showPage('advertisers')" id="mtab-advertisers"><span class="tab-icon">🏢</span><span class="tab-label">광고주</span></button><button onclick="openContractForm()" id="mtab-add"><span class="tab-icon">➕</span><span class="tab-label">계약등록</span></button></div>
-
-<script>
 // ===== ODSay API 설정 =====
 var ODSAY_KEY = '8H2D6gtlcaULId9lWJSDxg';
 var ODSAY_CID = 3000;
@@ -5642,7 +5637,6 @@ showPage = function(page) {
 };
 
 </script>
-</body>
-</html>
 
-<!-- v2.1 elevator ads module -->
+<div id="mobile-tabbar"><button onclick="showPage('dashboard')" class="active" id="mtab-dashboard"><span class="tab-icon">📊</span><span class="tab-label">대시보드</span></button><button onclick="showPage('map')" id="mtab-map"><span class="tab-icon">🗺️</span><span class="tab-label">노선지도</span></button><button onclick="showPage('contracts')" id="mtab-contracts"><span class="tab-icon">📋</span><span class="tab-label">계약관리</span></button><button onclick="showPage('advertisers')" id="mtab-advertisers"><span class="tab-icon">🏢</span><span class="tab-label">광고주</span></button><button onclick="openContractForm()" id="mtab-add"><span class="tab-icon">➕</span><span class="tab-label">계약등록</span></button></div>
+
