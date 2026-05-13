@@ -5469,7 +5469,7 @@ function openElevatorDetail(row) {
     '</div>' +
     (d.restrictions ? '<div style="background:#FFF5F5;border:1px solid #FFD0D0;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#C00;"><b>⚠️ 업종 제한:</b> '+d.restrictions+'</div>' : '') +
     '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
-      '<button onclick="document.getElementById('elev-detail-overlay').remove()" style="padding:8px 18px;border:1px solid var(--border);background:#fff;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);">닫기</button>' +
+      '<button onclick="document.getElementById(\\'elev-detail-overlay\\').remove()" style="padding:8px 18px;border:1px solid var(--border);background:#fff;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);">닫기</button>' +
     '</div></div>';
   document.body.appendChild(overlay);
   overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
@@ -5502,7 +5502,7 @@ function openElevatorUploadModal() {
     '</div>' +
     '<div id="elev-upload-progress" style="display:none;margin-bottom:12px;font-size:11px;color:var(--accent);"></div>' +
     '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
-      '<button onclick="document.getElementById('elev-upload-overlay').remove()" style="padding:8px 18px;border:1px solid var(--border);background:#fff;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);">취소</button>' +
+      '<button onclick="document.getElementById(\\'elev-upload-overlay\\').remove()" style="padding:8px 18px;border:1px solid var(--border);background:#fff;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);">취소</button>' +
       '<button onclick="processElevatorUpload()" style="padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);">업로드</button>' +
     '</div></div>';
   document.body.appendChild(overlay);
