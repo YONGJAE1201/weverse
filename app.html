@@ -566,7 +566,7 @@ window.addEventListener('load', function() {
     <button class="nav-tab" onclick="showPage('contracts')">📋 계약 관리</button>
     <button class="nav-tab" onclick="showPage('advertisers')">🏢 광고주 관리</button>
     <button class="nav-tab" onclick="showPage('archived')">🗂️ 종료 광고</button>
-    <button class="nav-tab" onclick="showPage('elevator')">🏢 승강기 광고</button>
+    <button class="nav-tab" onclick="showPage('vehicles')">🚍 차량 데이터</button>
   </div>
   <div class="nav-right">
     <div id="gs-status"><span class="dot"></span><span id="gs-status-text">연결 중...</span></div>
@@ -588,8 +588,8 @@ window.addEventListener('load', function() {
   <div class="sidebar-item" onclick="showPage('contracts')"><span class="icon">📋</span> 계약 관리</div>
   <div class="sidebar-item" onclick="showPage('advertisers')"><span class="icon">🏢</span> 광고주 관리</div>
   <div class="sidebar-item" onclick="showPage('archived')"><span class="icon">🗂️</span> 종료 광고</div>
-  <div class="sidebar-section">승강기 광고</div>
-  <div class="sidebar-item" onclick="showPage('elevator')"><span class="icon">🏢</span> 승강기 광고</div>
+  <div class="sidebar-section">API 데이터</div>
+  <div class="sidebar-item" onclick="showPage('vehicles')"><span class="icon">🚍</span> 차량 데이터</div>
   <div class="sidebar-section">도구</div>
 </aside>
 
@@ -904,74 +904,28 @@ window.addEventListener('load', function() {
 </div>
 
 
-<!-- ===== 승강기 광고 데이터 ===== -->
-<div id="page-elevator" class="page-view">
+<!-- ===== 차량 데이터 ===== -->
+<div id="page-vehicles" class="page-view">
 <div class="page-inner">
-  <div class="page-header" style="margin-bottom:0;">
-    <div>
-      <div class="page-title">승강기 광고</div>
-      <div class="page-subtitle">타운보드S · 타운보드L · 미디어밋 통합 단지 관리</div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <button class="btn btn-ghost" style="font-size:11px;" onclick="openElevatorUploadModal()">📂 엑셀 업로드</button>
-      <button class="btn btn-primary" style="font-size:11px;" onclick="exportElevatorExcel()">📥 엑셀 다운로드</button>
+  <div class="page-header">
+    <div><div class="page-title">차량 데이터</div><div class="page-sub">노선별 차량 현황 · 번호판/운수회사 클릭 수정</div></div>
+    <div class="header-actions" style="gap:8px;flex-wrap:wrap;">
+      <input id="veh-search" type="text" placeholder="노선번호 검색..." style="padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;width:130px;" oninput="renderVehicleTable()">
+      <select id="veh-type-filter" class="btn btn-ghost" style="font-size:12px;" onchange="renderVehicleTable()"><option value="all">전체</option><option value="급행">급행</option><option value="간선">간선</option><option value="지선">지선</option></select>
+      <button class="btn btn-ghost" onclick="openAddVehicleModal()" style="font-size:12px;">+ 차량 추가</button>
+      <button class="btn btn-primary" onclick="initVehiclesLocal()" style="font-size:12px;">초기 데이터 로드</button>
     </div>
   </div>
-
-  <!-- KPI 카드 -->
-  <div id="elev-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0;"></div>
-
-  <!-- 검색/필터 바 -->
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-    <input id="elev-search" type="text" placeholder="🔍 아파트명 · 지역 검색..."
-      style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;width:220px;font-family:var(--sans);"
-      oninput="renderElevatorTable()">
-    <select id="elev-media" onchange="renderElevatorTable()"
-      style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--sans);">
-      <option value="">전체 매체</option>
-      <option value="townboard_s">타운보드S (25인치)</option>
-      <option value="townboard_l">타운보드L (50·55인치)</option>
-      <option value="mediameet">미디어밋</option>
-    </select>
-    <select id="elev-region" onchange="renderElevatorTable()"
-      style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--sans);">
-      <option value="">전체 지역</option>
-    </select>
-    <select id="elev-price" onchange="renderElevatorTable()"
-      style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--sans);">
-      <option value="">전체 단가</option>
-      <option value="8000">8,000원</option>
-      <option value="10000">10,000원</option>
-      <option value="12000">12,000원</option>
-      <option value="15000">15,000원</option>
-    </select>
-    <span id="elev-count" style="font-size:11px;color:var(--text3);margin-left:4px;"></span>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <span id="veh-count" style="font-size:12px;color:var(--text3);"></span>
+    <span style="font-size:11px;color:var(--text3);">운수회사/번호판 셀 클릭하여 수정</span>
   </div>
-
-  <!-- 테이블 -->
   <div style="overflow-x:auto;">
-    <table id="elev-table" style="width:100%;border-collapse:collapse;font-size:12px;">
-      <thead>
-        <tr style="background:var(--bg3);border-bottom:2px solid var(--border);">
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--text2);">매체</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--text2);">구분</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--text2);">아파트명</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--text2);">지역</th>
-          <th style="padding:8px 10px;text-align:center;font-weight:700;color:var(--text2);">모니터</th>
-          <th style="padding:8px 10px;text-align:center;font-weight:700;color:var(--text2);">크기</th>
-          <th style="padding:8px 10px;text-align:center;font-weight:700;color:var(--text2);">세대수</th>
-          <th style="padding:8px 10px;text-align:right;font-weight:700;color:var(--text2);">15초 단가</th>
-          <th style="padding:8px 10px;text-align:right;font-weight:700;color:var(--text2);">30초 단가</th>
-          <th style="padding:8px 10px;text-align:center;font-weight:700;color:var(--text2);">준공</th>
-          <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--text2);">비고</th>
-        </tr>
-      </thead>
-      <tbody id="elev-tbody"></tbody>
+    <table class="data-table" style="width:100%;">
+      <thead><tr><th style="width:40px;">순번</th><th style="width:65px;">노선</th><th style="width:45px;">종류</th><th>구간</th><th style="width:150px;">운수회사</th><th style="width:100px;">번호판</th><th style="width:40px;"></th></tr></thead>
+      <tbody id="veh-table-body"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3);">초기 데이터 로드 버튼을 클릭하세요</td></tr></tbody>
     </table>
   </div>
-  <!-- 페이지네이션 -->
-  <div id="elev-pagination" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
-</div>
 </div>
 </div>
 
@@ -2138,7 +2092,7 @@ function getAdv(id){return DB.advertisers.find(a=>a.id===id)||{name:'미상',con
 function getRoute(id){return DB.routes.find(r=>r.id===id)||{no:'?',type:'',start:'',end:''};}
 function activeContracts(){return DB.contracts.filter(c=>c.status==='진행중');}
 
-function refreshAll(){renderKPI();renderRouteBars();renderExpiringList();renderAdvGrid();renderAdvTable();renderRouteTable();renderContractTable();if(document.getElementById('page-archived')?.classList.contains('active'))renderArchived();if(document.getElementById('page-elevator')?.classList.contains('active'))renderElevatorTable();;}
+function refreshAll(){renderKPI();renderRouteBars();renderExpiringList();renderAdvGrid();renderAdvTable();renderRouteTable();renderContractTable();if(document.getElementById('page-archived')?.classList.contains('active'))renderArchived();}
 
 function renderKPI(){
   var actives  = activeContracts();
@@ -5096,6 +5050,11 @@ async function saveAllToFirebase() {
 
 function logout(){if(confirm('로그아웃 하시겠습니까?')){sessionStorage.removeItem('_wv_auth');window.location.replace('./index.html');}}
 
+</script>
+
+<div id="mobile-tabbar"><button onclick="showPage('dashboard')" class="active" id="mtab-dashboard"><span class="tab-icon">📊</span><span class="tab-label">대시보드</span></button><button onclick="showPage('map')" id="mtab-map"><span class="tab-icon">🗺️</span><span class="tab-label">노선지도</span></button><button onclick="showPage('contracts')" id="mtab-contracts"><span class="tab-icon">📋</span><span class="tab-label">계약관리</span></button><button onclick="showPage('advertisers')" id="mtab-advertisers"><span class="tab-icon">🏢</span><span class="tab-label">광고주</span></button><button onclick="openContractForm()" id="mtab-add"><span class="tab-icon">➕</span><span class="tab-label">계약등록</span></button></div>
+
+<script>
 // ===== ODSay API 설정 =====
 var ODSAY_KEY = '8H2D6gtlcaULId9lWJSDxg';
 var ODSAY_CID = 3000;
@@ -5287,356 +5246,6 @@ setTimeout(function() {
     if (textEl) textEl.textContent = '연결 실패 (새로고침)';
   }
 }, 3000);
-
-// ═══════════════════════════════════════════════════
-// 승강기 광고 데이터 관리
-// ═══════════════════════════════════════════════════
-
-// 승강기 단지 DB (Firebase 로드 또는 엑셀 업로드)
-var ELEVATOR_DB = [];
-var ELEVATOR_PAGE = 1;
-var ELEVATOR_PER_PAGE = 50;
-
-// 매체 라벨/색상
-var ELEV_MEDIA_INFO = {
-  townboard_s: {label:'타운보드S', color:'#3A5BF0', bg:'#EBF0FF', size:'25인치'},
-  townboard_l: {label:'타운보드L', color:'#9B51E0', bg:'#F3EBFF', size:'50·55인치'},
-  mediameet:   {label:'미디어밋', color:'#0DB972', bg:'#E8FBF2', size:'-'}
-};
-
-// Firebase에서 승강기 데이터 로드
-async function loadElevatorFromFirebase() {
-  if (!window.FBDB) return;
-  try {
-    var snap = await window.FBDB.collection('elevatorComplexes').get();
-    if (!snap.empty) {
-      ELEVATOR_DB = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      initElevatorFilters();
-      renderElevatorKPI();
-      if (document.getElementById('page-elevator')?.classList.contains('active')) {
-        renderElevatorTable();
-      }
-    }
-  } catch(e) { console.warn('승강기 데이터 로드 실패:', e); }
-}
-
-// KPI 카드 렌더링
-function renderElevatorKPI() {
-  var el = document.getElementById('elev-kpi');
-  if (!el || !ELEVATOR_DB.length) return;
-  var ts = ELEVATOR_DB.filter(function(d){return d.mediaType==='townboard_s';});
-  var tl = ELEVATOR_DB.filter(function(d){return d.mediaType==='townboard_l';});
-  var mm = ELEVATOR_DB.filter(function(d){return d.mediaType==='mediameet';});
-  var totalMonitor = ELEVATOR_DB.reduce(function(a,d){return a+(d.monitorCount||0);},0);
-
-  var cards = [
-    {label:'전체 단지', value: ELEVATOR_DB.length.toLocaleString()+'개', sub:'3개 매체 합산', color:'var(--accent)'},
-    {label:'타운보드S', value: ts.length.toLocaleString()+'개', sub:'모니터 '+ts.reduce(function(a,d){return a+(d.monitorCount||0);},0).toLocaleString()+'대', color:'#3A5BF0'},
-    {label:'타운보드L', value: tl.length.toLocaleString()+'개', sub:'모니터 '+tl.reduce(function(a,d){return a+(d.monitorCount||0);},0).toLocaleString()+'대', color:'#9B51E0'},
-    {label:'미디어밋', value: mm.length.toLocaleString()+'개', sub:'모니터 '+mm.reduce(function(a,d){return a+(d.monitorCount||0);},0).toLocaleString()+'대', color:'#0DB972'},
-  ];
-  el.innerHTML = cards.map(function(c){
-    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">' +
-      '<div style="font-size:11px;color:var(--text3);margin-bottom:4px;">'+c.label+'</div>' +
-      '<div style="font-size:20px;font-weight:800;color:'+c.color+';">'+c.value+'</div>' +
-      '<div style="font-size:11px;color:var(--text3);margin-top:3px;">'+c.sub+'</div>' +
-      '</div>';
-  }).join('');
-}
-
-// 지역 필터 초기화
-function initElevatorFilters() {
-  var sel = document.getElementById('elev-region');
-  if (!sel) return;
-  var regions = [...new Set(ELEVATOR_DB.map(function(d){return d.region1;}).filter(Boolean))].sort();
-  sel.innerHTML = '<option value="">전체 지역</option>' +
-    regions.map(function(r){return '<option value="'+r+'">'+r+'</option>';}).join('');
-}
-
-// 테이블 렌더링
-function renderElevatorTable() {
-  if (!ELEVATOR_DB.length) return;
-  var q = (document.getElementById('elev-search')||{value:''}).value.trim().toLowerCase();
-  var media = (document.getElementById('elev-media')||{value:''}).value;
-  var region = (document.getElementById('elev-region')||{value:''}).value;
-  var price = (document.getElementById('elev-price')||{value:''}).value;
-
-  var filtered = ELEVATOR_DB.filter(function(d) {
-    if (media && d.mediaType !== media) return false;
-    if (region && d.region1 !== region) return false;
-    if (price && d.unitPrice !== parseInt(price)) return false;
-    if (q) {
-      var s = (d.name||'')+(d.region1||'')+(d.region2||'')+(d.address||'');
-      if (!s.toLowerCase().includes(q)) return false;
-    }
-    return true;
-  });
-
-  var countEl = document.getElementById('elev-count');
-  if (countEl) countEl.textContent = filtered.length.toLocaleString() + '개 단지';
-
-  // 페이지네이션
-  var total = filtered.length;
-  var totalPages = Math.ceil(total / ELEVATOR_PER_PAGE);
-  if (ELEVATOR_PAGE > totalPages) ELEVATOR_PAGE = 1;
-  var start = (ELEVATOR_PAGE-1)*ELEVATOR_PER_PAGE;
-  var paged = filtered.slice(start, start+ELEVATOR_PER_PAGE);
-
-  var tbody = document.getElementById('elev-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = paged.map(function(d) {
-    var mi = ELEV_MEDIA_INFO[d.mediaType] || {label:d.mediaType,color:'#888',bg:'#eee'};
-    var badge = '<span style="background:'+mi.bg+';color:'+mi.color+';padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap;">'+mi.label+'</span>';
-    var price15 = d.price15s ? d.price15s.toLocaleString()+'원' : '-';
-    var price30 = d.price30s ? d.price30s.toLocaleString()+'원' : '-';
-    var restrict = d.restrictions ? '<span title="'+d.restrictions+'" style="cursor:help;color:var(--red);font-size:10px;">⚠️ 제한</span>' : '';
-    var remodel = d.isRemodeling ? '<span style="background:#FEF3E0;color:#F07820;padding:1px 5px;border-radius:3px;font-size:9px;margin-left:3px;">리모델링</span>' : '';
-    return '<tr style="border-bottom:1px solid var(--border);cursor:pointer;" onclick="openElevatorDetail(this)" data-id="'+(d.id||d.name)+'">' +
-      '<td style="padding:8px 10px;">'+badge+'</td>' +
-      '<td style="padding:8px 10px;color:var(--text3);font-size:11px;">'+(d.complexType||'')+'</td>' +
-      '<td style="padding:8px 10px;font-weight:600;color:var(--text);">'+d.name+remodel+'</td>' +
-      '<td style="padding:8px 10px;color:var(--text2);">'+(d.region1||'')+' '+(d.region2||'')+'</td>' +
-      '<td style="padding:8px 10px;text-align:center;font-weight:700;color:var(--accent);">'+(d.monitorCount||0)+'대</td>' +
-      '<td style="padding:8px 10px;text-align:center;color:var(--text3);font-size:11px;">'+(d.monitorSize||'-')+'</td>' +
-      '<td style="padding:8px 10px;text-align:center;color:var(--text2);">'+(d.households ? d.households.toLocaleString() : '-')+'</td>' +
-      '<td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--text);">'+price15+'</td>' +
-      '<td style="padding:8px 10px;text-align:right;color:var(--text2);">'+price30+'</td>' +
-      '<td style="padding:8px 10px;text-align:center;color:var(--text3);font-size:11px;">'+(d.builtYear||'-')+'</td>' +
-      '<td style="padding:8px 10px;">'+restrict+'</td>' +
-      '</tr>';
-  }).join('');
-
-  // 페이지네이션 렌더
-  var pagEl = document.getElementById('elev-pagination');
-  if (pagEl) {
-    var pages = '';
-    var range = 5;
-    var s2 = Math.max(1, ELEVATOR_PAGE-range), e2 = Math.min(totalPages, ELEVATOR_PAGE+range);
-    if (ELEVATOR_PAGE > 1) pages += '<button onclick="elevPage('+(ELEVATOR_PAGE-1)+')" style="'+pagBtnStyle()+'">‹</button>';
-    for (var i=s2;i<=e2;i++) {
-      var active = i===ELEVATOR_PAGE ? 'background:var(--accent);color:#fff;border-color:var(--accent);' : '';
-      pages += '<button onclick="elevPage('+i+')" style="'+pagBtnStyle()+active+'">'+i+'</button>';
-    }
-    if (ELEVATOR_PAGE < totalPages) pages += '<button onclick="elevPage('+(ELEVATOR_PAGE+1)+')" style="'+pagBtnStyle()+'">›</button>';
-    pagEl.innerHTML = pages;
-  }
-}
-
-function pagBtnStyle(){return 'padding:4px 10px;border:1px solid var(--border);background:var(--bg2);border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--sans);';}
-function elevPage(p){ELEVATOR_PAGE=p;renderElevatorTable();}
-
-// 단지 상세 팝업
-function openElevatorDetail(row) {
-  var id = row.getAttribute('data-id');
-  var d = ELEVATOR_DB.find(function(x){return (x.id||x.name)===id;});
-  if (!d) return;
-  var mi = ELEV_MEDIA_INFO[d.mediaType] || {label:d.mediaType,color:'#888',bg:'#eee'};
-
-  var overlay = document.createElement('div');
-  overlay.id = 'elev-detail-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;';
-
-  var p15 = d.price15s ? d.price15s.toLocaleString()+'원' : '-';
-  var p30 = d.price30s ? '/ 30초 '+d.price30s.toLocaleString()+'원' : '';
-  var totalPrice15 = d.price15s && d.monitorCount ? (d.price15s*d.monitorCount).toLocaleString()+'원/월' : '-';
-
-  overlay.innerHTML =
-    '<div style="background:#fff;border-radius:14px;padding:28px 32px;width:500px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.18);font-family:var(--sans);">' +
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">' +
-      '<span style="background:'+mi.bg+';color:'+mi.color+';padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">'+mi.label+'</span>' +
-      '<span style="font-size:16px;font-weight:800;color:var(--text);">'+d.name+'</span>' +
-      (d.isRemodeling?'<span style="background:#FEF3E0;color:#F07820;padding:2px 8px;border-radius:5px;font-size:10px;">리모델링</span>':'') +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">' +
-      elevDetailItem('주소', d.address||'-') +
-      elevDetailItem('지역', (d.region1||'')+' '+(d.region2||'')+' '+(d.region3||'')) +
-      elevDetailItem('세대수', d.households ? d.households.toLocaleString()+'세대' : '-') +
-      elevDetailItem('준공연도', d.builtYear||'-') +
-      elevDetailItem('평형', (d.minPyeong&&d.maxPyeong) ? d.minPyeong+'~'+d.maxPyeong+'평' : (d.minPyeong||'-')) +
-      elevDetailItem('구분', d.complexType||'-') +
-    '</div>' +
-    '<div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px;">' +
-      '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;">📺 광고 정보</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' +
-        elevDetailItem('모니터 수', (d.monitorCount||0)+'대') +
-        elevDetailItem('크기', d.monitorSize||'-') +
-        elevDetailItem('단가', p15+' '+p30) +
-      '</div>' +
-      '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">' +
-        '<span style="font-size:11px;color:var(--text3);">월 예상 광고료 (15초)</span>' +
-        '<span style="font-size:15px;font-weight:800;color:var(--accent);margin-left:10px;">'+totalPrice15+'</span>' +
-      '</div>' +
-    '</div>' +
-    (d.restrictions ? '<div style="background:#FFF5F5;border:1px solid #FFD0D0;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#C00;"><b>⚠️ 업종 제한:</b> '+d.restrictions+'</div>' : '') +
-    '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
-      '<button onclick="document.getElementById("elev-detail-overlay").remove()" style="padding:8px 18px;border:1px solid var(--border);background:#fff;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);">닫기</button>' +
-    '</div></div>';
-  document.body.appendChild(overlay);
-  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
-}
-
-function elevDetailItem(label, value) {
-  return '<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px;">'+label+'</div><div style="font-size:12px;font-weight:600;color:var(--text);">'+value+'</div></div>';
-}
-
-// 엑셀 업로드 모달
-function openElevatorUploadModal() {
-  var overlay = document.createElement('div');
-  overlay.id = 'elev-upload-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;';
-  overlay.innerHTML =
-    '<div style="background:#fff;border-radius:14px;padding:28px 32px;width:460px;box-shadow:0 8px 40px rgba(0,0,0,.18);font-family:var(--sans);">' +
-    '<div style="font-size:15px;font-weight:800;margin-bottom:6px;">📂 엑셀 업로드</div>' +
-    '<div style="font-size:12px;color:var(--text3);margin-bottom:18px;">타운보드 또는 미디어밋 엑셀 파일을 업로드하여 데이터를 갱신합니다.</div>' +
-    '<div style="margin-bottom:14px;">' +
-      '<label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">매체 선택</label>' +
-      '<select id="elev-upload-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-family:var(--sans);">' +
-        '<option value="townboard_s">타운보드S (전국 50,000대)</option>' +
-        '<option value="townboard_l">타운보드L (전국 10,000대)</option>' +
-        '<option value="mediameet">미디어밋</option>' +
-      '</select>' +
-    '</div>' +
-    '<div style="margin-bottom:18px;">' +
-      '<label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">엑셀 파일 선택</label>' +
-      '<input type="file" id="elev-upload-file" accept=".xlsx,.xls" style="font-size:12px;">' +
-    '</div>' +
-    '<div id="elev-upload-progress" style="display:none;margin-bottom:12px;font-size:11px;color:var(--accent);"></div>' +
-    '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
-      '<button onclick="document.getElementById("elev-upload-overlay").remove()" style="padding:8px 18px;border:1px solid var(--border);background:#fff;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);">취소</button>' +
-      '<button onclick="processElevatorUpload()" style="padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);">업로드</button>' +
-    '</div></div>';
-  document.body.appendChild(overlay);
-  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
-}
-
-// 엑셀 파일 처리 (XLSX.js 활용)
-async function processElevatorUpload() {
-  var fileInput = document.getElementById('elev-upload-file');
-  var mediaType = document.getElementById('elev-upload-type').value;
-  var progress = document.getElementById('elev-upload-progress');
-  if (!fileInput || !fileInput.files[0]) { showToast('파일을 선택해주세요.','red'); return; }
-
-  progress.style.display = 'block';
-  progress.textContent = '파일 읽는 중...';
-
-  var reader = new FileReader();
-  reader.onload = async function(e) {
-    try {
-      var data = new Uint8Array(e.target.result);
-      var wb = XLSX.read(data, {type:'array'});
-      var newData = [];
-
-      if (mediaType === 'mediameet') {
-        var ws = wb.Sheets['설치 리스트'] || wb.Sheets[wb.SheetNames[1]];
-        var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
-        for (var i=5; i<rows.length; i++) {
-          var r = rows[i];
-          if (!r[2]) continue;
-          var inner = typeof r[7]==='number'?r[7]:0;
-          var waiting = typeof r[8]==='number'?r[8]:0;
-          newData.push({
-            mediaType:'mediameet', complexType:r[1]||'아파트', name:String(r[2]),
-            region1:r[3]||'', region2:r[4]||'', region3:r[5]||'', address:r[6]||'',
-            monitorInner:inner, monitorWaiting:waiting, monitorCount:inner+waiting,
-            monitorSize:null, builtYear:r[10]||null,
-            minPyeong:r[11]?String(r[11]):null, maxPyeong:r[12]?String(r[12]):null,
-            households:r[13]||null, price15s:r[14]||0, price30s:r[16]||0, unitPrice:r[14]||0,
-            restrictions:[r[18],r[19],r[20]].filter(Boolean).join(' / '), isRemodeling:false
-          });
-        }
-      } else {
-        var sheetName = mediaType==='townboard_s' ? wb.SheetNames.find(s=>s.includes('50,000')) : wb.SheetNames.find(s=>s.includes('10,000'));
-        var ws = wb.Sheets[sheetName] || wb.Sheets[wb.SheetNames[0]];
-        var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
-        var size = mediaType==='townboard_s' ? '25인치' : '55인치';
-        for (var i=6; i<rows.length; i++) {
-          var r = rows[i];
-          if (!r[3]) continue;
-          var mc = typeof r[12]==='number'?r[12]:0;
-          var up = typeof r[15]==='number'?r[15]:0;
-          newData.push({
-            mediaType:mediaType, complexType:r[1]||'아파트', name:String(r[3]),
-            region1:r[5]||'', region2:r[6]||'', region3:r[7]||'', region4:r[8]||'', address:r[9]||'',
-            monitorInner:mc, monitorWaiting:0, monitorCount:mc,
-            monitorSize:r[17]?String(r[17]):size, builtYear:r[4]||null,
-            minPyeong:r[10]?String(r[10]):null, maxPyeong:null,
-            households:r[11]||null, price15s:up, price30s:null, unitPrice:up,
-            restrictions:r[18]?String(r[18]):'', isRemodeling:!!r[13]
-          });
-        }
-      }
-
-      progress.textContent = newData.length+'개 단지 처리 중... Firebase 저장 중...';
-
-      // 기존 해당 매체 데이터 제거 후 새 데이터 추가
-      ELEVATOR_DB = ELEVATOR_DB.filter(function(d){return d.mediaType!==mediaType;}).concat(newData);
-
-      // Firebase 저장 (배치)
-      if (window.FBDB) {
-        // 기존 삭제
-        var oldSnap = await window.FBDB.collection('elevatorComplexes').where('mediaType','==',mediaType).get();
-        var batch = window.FBDB.batch();
-        oldSnap.docs.forEach(function(d){ batch.delete(d.ref); });
-        await batch.commit();
-        // 새 데이터 저장 (500개씩 배치)
-        for (var start=0; start<newData.length; start+=400) {
-          var chunk = newData.slice(start, start+400);
-          var b2 = window.FBDB.batch();
-          chunk.forEach(function(item) {
-            var ref = window.FBDB.collection('elevatorComplexes').doc();
-            b2.set(ref, item);
-          });
-          await b2.commit();
-          progress.textContent = Math.min(start+400, newData.length)+'/'+newData.length+' 저장 완료...';
-        }
-      }
-
-      document.getElementById('elev-upload-overlay').remove();
-      showToast(newData.length+'개 단지 업로드 완료!', 'green');
-      initElevatorFilters();
-      renderElevatorKPI();
-      renderElevatorTable();
-    } catch(err) {
-      progress.textContent = '오류: '+err.message;
-      showToast('업로드 실패: '+err.message,'red');
-    }
-  };
-  reader.readAsArrayBuffer(fileInput.files[0]);
-}
-
-// 엑셀 다운로드
-function exportElevatorExcel() {
-  var wb = XLSX.utils.book_new();
-  var headers = ['매체','구분','아파트명','지역1','지역2','지역3','주소','모니터수','크기','세대수','준공','15초단가','30초단가','월광고료(15초)','업종제한'];
-  var data = [headers].concat(ELEVATOR_DB.map(function(d){
-    var mi = ELEV_MEDIA_INFO[d.mediaType];
-    return [
-      mi?mi.label:d.mediaType, d.complexType||'', d.name, d.region1||'', d.region2||'', d.region3||'', d.address||'',
-      d.monitorCount||0, d.monitorSize||'-', d.households||'', d.builtYear||'',
-      d.price15s||0, d.price30s||'-', d.price15s&&d.monitorCount?d.price15s*d.monitorCount:0, d.restrictions||''
-    ];
-  }));
-  var ws = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{wch:10},{wch:8},{wch:25},{wch:8},{wch:8},{wch:8},{wch:35},{wch:8},{wch:8},{wch:8},{wch:6},{wch:8},{wch:8},{wch:12},{wch:50}];
-  XLSX.utils.book_append_sheet(wb, ws, '승강기광고_전체');
-  XLSX.writeFile(wb, '승강기광고_'+new Date().toISOString().slice(0,10)+'.xlsx');
-}
-
-// showPage 훅 - elevator 페이지 열릴 때 데이터 로드/렌더
-var _origShowPage = showPage;
-showPage = function(page) {
-  _origShowPage(page);
-  if (page === 'elevator') {
-    if (!ELEVATOR_DB.length) {
-      loadElevatorFromFirebase();
-    } else {
-      renderElevatorKPI();
-      renderElevatorTable();
-    }
-  }
-};
-
 </script>
-
-<div id="mobile-tabbar"><button onclick="showPage('dashboard')" class="active" id="mtab-dashboard"><span class="tab-icon">📊</span><span class="tab-label">대시보드</span></button><button onclick="showPage('map')" id="mtab-map"><span class="tab-icon">🗺️</span><span class="tab-label">노선지도</span></button><button onclick="showPage('contracts')" id="mtab-contracts"><span class="tab-icon">📋</span><span class="tab-label">계약관리</span></button><button onclick="showPage('advertisers')" id="mtab-advertisers"><span class="tab-icon">🏢</span><span class="tab-label">광고주</span></button><button onclick="openContractForm()" id="mtab-add"><span class="tab-icon">➕</span><span class="tab-label">계약등록</span></button></div>
-
+</body>
+</html>
